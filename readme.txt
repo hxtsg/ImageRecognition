@@ -1,1 +1,0 @@
-This version is about reading images and labels from the cifar batches
