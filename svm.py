@@ -13,8 +13,8 @@ class SVM():
         self.data.Run()
         self.BATCH_SIZE = 256
         self.weights = np.random.rand(10,3073)     # a matrix of 10 * 3073
-        self.stepSize = 0.001
-        self.delta = 1
+        self.stepSize = 0.00001
+        self.delta = 10
         self.lamb = 0.001
 
 
@@ -22,14 +22,15 @@ class SVM():
     def predict(self):
         train_times = 10000
         for i in range( train_times ):
-            self.weights -= self.calc_grad()
-            print self.calc_loss()
+
+            self.weights += -self.stepSize * self.calc_grad()
+            print i, " ", self.calc_loss()
 
 
     def calc_grad(self):
         # get batch
         # data_batch = random.sample( self.data.X_input, self.BATCH_SIZE )
-        example_num = self.data.X_input
+        example_num = self.data.X_input.shape[0]
         class_num = 10
         grad_weight = np.zeros( ( 10, 3073 ) )
         tmp_grad_weight = np.zeros( ( 10, 3073 ) )
@@ -81,10 +82,8 @@ class SVM():
         reg_term = self.lamb * np.sum( np.sum( np.square( self.weights ) ) )
 
 
-        return loss_term + reg_term
+        return loss_term
 
-    def eval_gradient(self):
-        return None
 
 
 
@@ -169,4 +168,4 @@ class Data():
 
 if __name__ == '__main__':
     svm = SVM()
-    print svm.calc_loss()
+    svm.predict()
