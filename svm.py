@@ -19,36 +19,49 @@ class SVM():
 
 
 
-    def predict(self):
+    def train(self):
         train_times = 10000
         for i in range( train_times ):
 
             self.weights += -self.stepSize * self.calc_grad()
             print i, " ", self.calc_loss()
 
+    def predict(self):
+        predict_y = np.zeros( self.data.test_Y.shape[0] )
+        example_nums = self.data.test_X.shape[0]
+        for i in range( example_nums ):
+            X = np.concatenate( ( self.data.test_X[ i ], np.array( [ 1 ] ) ) )
+            scores = np.matmul( self.weights, X )
+            predict_y[ i ] = np.argmax( scores )
+        print "accuracy:", np.mean( predict_y == self.data.test_Y )
+
 
     def calc_grad(self):
         # get batch
-        # data_batch = random.sample( self.data.X_input, self.BATCH_SIZE )
-        example_num = self.data.X_input.shape[0]
+        data_batch = np.array(random.sample( self.data.All_data, self.BATCH_SIZE ))
+
+        example_X = data_batch[:,:-1]
+        example_Y = data_batch[:,-1:]
+
+        example_num = example_X.shape[0]
         class_num = 10
         grad_weight = np.zeros( ( 10, 3073 ) )
         tmp_grad_weight = np.zeros( ( 10, 3073 ) )
 
 
         for i in range( example_num ):
-            X = np.concatenate((self.data.X_input[ i ], np.array( [ 1 ] ))) # 3073 * 1
+            X = np.concatenate(( example_X[ i ], np.array( [ 1 ] ))) # 3073 * 1
             indicator = np.matmul( self.weights, X )   # 10 * 1
 
             grad_miss_cnt = 0
 
             for j in range(class_num):
-                if indicator[ j ] - indicator[ self.data.Y_input[ i ] ] + self.delta > 0:
+                if indicator[ j ] - indicator[ example_Y[ i ][ 0 ] ] + self.delta > 0:
                     tmp_grad_weight[ j ] = X
                     grad_miss_cnt += 1
                 else:
                     tmp_grad_weight[ j ] = np.zeros( ( 1 * 3073 ) )
-            tmp_grad_weight[ self.data.Y_input[ i ] ] = -1 * grad_miss_cnt * X
+            tmp_grad_weight[ example_Y[ i ][ 0 ] ] = -1 * grad_miss_cnt * X
 
             grad_weight += tmp_grad_weight
 
@@ -101,6 +114,9 @@ class Data():
 
         self.test_X = None   # test data and labels
         self.test_Y = None
+
+        self.All_data = None
+
     def Run(self):
 
         labelFileName = './cifar-10-batches-py/batches.meta'
@@ -114,7 +130,7 @@ class Data():
         self.LOAD_CIFAR_DATA( imgFileName )
 
         self.Show()
-
+        self.Patch_Together()
     def LOAD_CIFAR_DATA(self, filename ):
         with open(filename,'rb') as f:
             dataset = pickle.load( f )
@@ -133,6 +149,10 @@ class Data():
             print obj
             self.label_names =  obj['label_names']
 
+    def Patch_Together(self):  # push X_input and Y_input into one matrix of 50000 * ( 3072 + 1 ) with 1 means the y label
+
+        self.All_data = np.concatenate( ( self.X_input, np.reshape( self.Y_input, ( self.Y_input.shape[ 0 ], 1 )) ), axis= 1 )
+        return None
     def Show(self):  # change the shape of the input to be 50000 * 3072 with three channels of one pixel being together
         num_in_batch = self.X_input_list[0].shape[0]
 
@@ -168,4 +188,9 @@ class Data():
 
 if __name__ == '__main__':
     svm = SVM()
+    svm.train()
     svm.predict()
+    # a = np.array( [ [ 1, 2 ], [ 3, 4 ]  ] )
+    # b = np.array( [ [ 5, 6 ], [ 7, 8 ]  ] )
+    # c = np.concatenate( ( a,b ), axis= 1 )
+    # print c
