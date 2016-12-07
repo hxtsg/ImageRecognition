@@ -1,6 +1,7 @@
 import pickle
 import cv2
 import numpy as np
+import random
 class ReadData():
     def __init__(self):
         self.label_names = None
@@ -46,4 +47,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    arr = [ 5, 6, 7, 1, 2 ]
+    for i in range(20):
+        print arr[random.randint( 0, len( arr ) - 1 )]

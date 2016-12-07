@@ -13,18 +13,25 @@ class SVM():
         self.data.Run()
         self.BATCH_SIZE = 256
         self.weights = np.random.rand(10,3073)     # a matrix of 10 * 3073
-        self.stepSize = 0.00001
+        self.stepSizeArray = [ -4, -5, -6, -7, -8, -9, -10 ]
+        self.stepSizeIndex = 0
         self.delta = 10
         self.lamb = 0.001
 
 
 
     def train(self):
-        train_times = 10000
+        train_times = 100000
+        pre_loss = self.calc_loss()
+        stepSize = 10 ** self.stepSizeArray[ self.stepSizeIndex ]
         for i in range( train_times ):
-
-            self.weights += -self.stepSize * self.calc_grad()
-            print i, " ", self.calc_loss()
+            self.weights += -stepSize * self.calc_grad()
+            cur_loss = self.calc_loss()
+            print i, " ", cur_loss, " ", stepSize
+            if cur_loss > pre_loss:
+                self.stepSizeIndex = min( self.stepSizeIndex + 1, len( self.stepSizeArray ) - 1 )
+                stepSize = 10 ** self.stepSizeArray[ self.stepSizeIndex ]
+            pre_loss = cur_loss
 
     def predict(self):
         predict_y = np.zeros( self.data.test_Y.shape[0] )
